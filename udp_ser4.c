@@ -37,7 +37,7 @@ void str_ser(int sockfd, struct sockaddr *addr, int addrlen) {
 	FILE *fp;
 	char recvs[DATALEN];
 	struct ack_so ack;
-	int end, n = 0, bsize = 2;
+	int end, n = 0, bsize = 1;
 	long lseek=0;
 	end = 0;
     int packet_recv = 0;

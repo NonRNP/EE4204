@@ -88,7 +88,7 @@ float str_cli(FILE *fp, int sockfd, struct sockaddr *addr, int addrlen, long *le
     long lsize, ci;
     char sends[DATALEN];
     struct ack_so ack;
-	int n, slen, bsize = 2;
+	int n, slen, bsize = 1;
 	float time_inv = 0.0;
 	struct timeval sendt, recvt;
 	ci = 0;
