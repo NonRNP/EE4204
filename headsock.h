@@ -15,8 +15,10 @@
 
 #define NEWFILE (O_WRONLY|O_CREAT|O_TRUNC)
 #define MYUDP_PORT 5350
-#define DATALEN 500
+#define DATALEN 700
 #define BUFSIZE 60000
+
+#define TOTAL_COMMS 30
 
 struct pack_so			//data packet structure
 {

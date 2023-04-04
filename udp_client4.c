@@ -1,17 +1,21 @@
 #include "headsock.h"
+#include <unistd.h>
 
 float str_cli(FILE *fp, int sockfd, struct sockaddr *addr, int addrlen, long *len);
 void tv_sub(struct timeval *out, struct timeval *in);
 
 int main(int argc, char **argv) {
     int sockfd;
-    float ti, rt, throughput;
+    float ti, rt;
     long len;
     struct sockaddr_in ser_addr;
     char ** pptr;
     struct hostent *sh;
     struct in_addr **addrs;
     FILE *fp;
+
+    float time_arr[TOTAL_COMMS];
+    float rate_arr[TOTAL_COMMS];
 
     if (argc != 2) {
 		printf("parameters not match");
@@ -54,10 +58,24 @@ int main(int argc, char **argv) {
 		exit(0);
 	}
 
-    ti = str_cli(fp, sockfd,(struct sockaddr*)&ser_addr, sizeof(struct sockaddr_in),&len);
-	rt = (len/(float)ti);
-    throughput = (8*rt)/1000;
-	printf("Time(ms) : %.3f, Data sent(byte): %d\nData rate: %f (Kbytes/s)\nThroughput: %f (bits/s)\n", ti, (int)len, rt, throughput);
+    for (int i = 0; i < TOTAL_COMMS; i++) {
+        ti = str_cli(fp, sockfd,(struct sockaddr*)&ser_addr, sizeof(struct sockaddr_in),&len);
+        rt = (len/(float)ti);
+        printf("Time(ms) : %.3f, Data sent(byte): %d\nData rate: %f (bytes/ms)\n", ti, (int)len, rt);
+        time_arr[i] = ti;
+        rate_arr[i] = rt;
+        sleep(1);
+    }
+
+    float time_ave = 0.0;
+    float rate_ave = 0.0;
+    for (int i = 0; i < TOTAL_COMMS; i++) {
+        time_ave += time_arr[i];
+        rate_ave += rate_arr[i];
+    }
+    time_ave = time_ave / TOTAL_COMMS;
+    rate_ave = rate_ave / TOTAL_COMMS;
+    printf("Ave Time(ms) : %.3f\nAve Data rate: %f (Kbytes/s)\n", time_ave, rate_ave);
 
 	close(sockfd);
 	fclose(fp);
@@ -70,7 +88,7 @@ float str_cli(FILE *fp, int sockfd, struct sockaddr *addr, int addrlen, long *le
     long lsize, ci;
     char sends[DATALEN];
     struct ack_so ack;
-	int n, slen, bsize = 1;
+	int n, slen, bsize = 2;
 	float time_inv = 0.0;
 	struct timeval sendt, recvt;
 	ci = 0;
@@ -113,10 +131,15 @@ float str_cli(FILE *fp, int sockfd, struct sockaddr *addr, int addrlen, long *le
 			if (ack.num != 1 || ack.len != 0) {
 				printf("error in transmission of ACK\n");
 			} else {
-				printf("ACK received\n");
+				//printf("ACK received\n");
 				ci += slen;
 			}
-			bsize = bsize == 3 ? 1 : bsize + 1;
+
+			if (bsize >= 3) {
+			    bsize = 1;
+			} else {
+			    bsize++;
+			}
 			packet_sent = 0;
 		} else {
 			ci += slen;
@@ -126,6 +149,7 @@ float str_cli(FILE *fp, int sockfd, struct sockaddr *addr, int addrlen, long *le
 	*len= ci;
 	tv_sub(&recvt, &sendt);
 	time_inv += (recvt.tv_sec)*1000.0 + (recvt.tv_usec)/1000.0;
+	free(buf);
 	return(time_inv);
 }
 

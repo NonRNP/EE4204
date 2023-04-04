@@ -37,7 +37,7 @@ void str_ser(int sockfd, struct sockaddr *addr, int addrlen) {
 	FILE *fp;
 	char recvs[DATALEN];
 	struct ack_so ack;
-	int end, n = 0, bsize = 1;
+	int end, n = 0, bsize = 2;
 	long lseek=0;
 	end = 0;
     int packet_recv = 0;
@@ -63,7 +63,12 @@ void str_ser(int sockfd, struct sockaddr *addr, int addrlen) {
                 exit(1);
             }
             printf("ACK sent!\n");
-            bsize = bsize == 3 ? 1 : bsize + 1;
+
+			if (bsize >= 3) {
+			    bsize = 1;
+			} else {
+			    bsize++;
+			}
             packet_recv = 0;
         }
     }
